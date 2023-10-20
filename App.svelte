@@ -9,20 +9,18 @@
   import CardHand from "./CardHand.svelte";
   import PlayArea from "./PlayArea.svelte";
   import HiddenCard from "./HiddenCard.svelte";
-
+  import { BASE_URL } from "./config.ts";
   let gameId
 
   async function makeNewGame() {
-    const makeGameResp = await fetch("http://localhost:3000/game", {
+    const makeGameResp = await fetch(`${BASE_URL}/game`, {
       method: "POST",
     })
     const makeGameJson = await makeGameResp.json()
-    console.log(makeGameJson)
     gameId = makeGameJson.id
-    const resp = await fetch(`http://localhost:3000/game/${makeGameJson.id}`)
+    const resp = await fetch(`${BASE_URL}/game/${makeGameJson.id}`)
     const json = await resp.json()
 
-    console.log(json)
     gameData.set(json)
   }
 
@@ -38,12 +36,10 @@
       toggledCards = [...toggledCards, value]
     }
 
-    console.log(toggledCards);
   }
 
   async function handlePlay() {
-    console.log("play cards", toggledCards);
-    await fetch(`http://localhost:3000/game/${gameId}/actions/play-cards`, {
+    await fetch(`${BASE_URL}/game/${gameId}/actions/play-cards`, {
       method: "POST",
       body: JSON.stringify({
         playerId: $currentPlayerId,
@@ -53,7 +49,7 @@
 
     })
 
-    const resp = await fetch(`http://localhost:3000/game/${gameId}`)
+    const resp = await fetch(`${BASE_URL}/game/${gameId}`)
     const json = await resp.json()
     
     onAfterTurn(json)
@@ -65,14 +61,13 @@
   }
 
   async function handlePass() {
-    await fetch(`http://localhost:3000/game/${gameId}/actions/pass-turn`, {
+    await fetch(`${BASE_URL}/game/${gameId}/actions/pass-turn`, {
       method: 'POST',
       body: JSON.stringify({
         playerId: $currentPlayerId,
       }),
     })
-    console.log("pass turn");
-    const resp = await fetch(`http://localhost:3000/game/${gameId}`)
+    const resp = await fetch(`${BASE_URL}/game/${gameId}`)
     const json = await resp.json()
 
     onAfterTurn(json)
