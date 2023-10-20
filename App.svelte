@@ -1,6 +1,9 @@
 <script>
   import { onMount } from 'svelte'
-  import { gameData, currentPlayerCards, lastPlayedCards, currentPlayerId } from './store.ts'
+  import { gameData, currentPlayerCards, lastPlayedCards, currentPlayerId, gameOver,
+    playerLCards, playerRCards, playerTCards,
+    playLName, playRName, playTName,
+  } from './store.ts'
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
   import CardHand from "./CardHand.svelte";
@@ -9,7 +12,7 @@
 
   let gameId
 
-  onMount(async () => {
+  async function makeNewGame() {
     const makeGameResp = await fetch("http://localhost:3000/game", {
       method: "POST",
     })
@@ -21,14 +24,9 @@
 
     console.log(json)
     gameData.set(json)
-  })
+  }
 
-  let cards = ["♠️2", "♠️3", "❤️4", "❤️5", "♦️A", "♣️J"];
-  // const lastPlayedCards = ["❤️10", "❤️10"];
-  const player0Cards = 4;
-  const player1Cards = 8;
-  const player2Cards = 10;
-  let currentPlayerTurn = "player 1";
+  onMount(makeNewGame)
 
   $: toggledCards = [];
 
@@ -44,13 +42,9 @@
   }
 
   async function handlePlay() {
-    console.log("play cards");
-    console.log(toggledCards);
+    console.log("play cards", toggledCards);
     await fetch(`http://localhost:3000/game/${gameId}/actions/play-cards`, {
       method: "POST",
-      // headers: {
-      //   "Content-Type": "application/json",
-      // },
       body: JSON.stringify({
         playerId: $currentPlayerId,
         cards: toggledCards,
@@ -61,12 +55,27 @@
 
     const resp = await fetch(`http://localhost:3000/game/${gameId}`)
     const json = await resp.json()
-    toggledCards = []
-    gameData.set(json)
+    
+    onAfterTurn(json)
   }
 
-  function handlePass() {
+  async function onAfterTurn (newGameState) {
+    toggledCards = []
+    gameData.set(newGameState)
+  }
+
+  async function handlePass() {
+    await fetch(`http://localhost:3000/game/${gameId}/actions/pass-turn`, {
+      method: 'POST',
+      body: JSON.stringify({
+        playerId: $currentPlayerId,
+      }),
+    })
     console.log("pass turn");
+    const resp = await fetch(`http://localhost:3000/game/${gameId}`)
+    const json = await resp.json()
+
+    onAfterTurn(json)
   }
 </script>
 
@@ -118,25 +127,31 @@
 
   <br />
 
-  playersTurn: {$currentPlayerId}
-
+  {#if $gameOver}
+    <h2>Gameover!</h2>
+  {:else }
+    <h2>playersTurn: {$currentPlayerId}</h2>
+  {/if}
   <br />
 
   <div class="game-grid">
     <div class="left-player">
-      {#each Array(player0Cards) as card}
+      {$playLName}
+      {#each Array($playerLCards) as card}
         <HiddenCard />
       {/each}  
     </div>
 
     <div class="right-player">
-      {#each Array(player1Cards) as card}
+      {$playRName}
+      {#each Array($playerRCards) as card}
         <HiddenCard />
       {/each}  
     </div>
 
     <div class="top-player">
-      {#each Array(player2Cards) as card}
+      {$playTName}
+      {#each Array($playerTCards) as card}
         <HiddenCard />
       {/each}  
     </div>
@@ -152,12 +167,16 @@
     <div class="current-player">
       <CardHand>
       {#each $currentPlayerCards as card}
-        <Card value={card} toggleCard={toggleCard} toggledCards={toggledCards} />
+        <Card value={card} toggleCard={toggleCard} selected={toggledCards?.includes(card)} />
       {/each}
       </CardHand>
-
+      {$currentPlayerId}
       <Button handleClick={handlePlay}>Play cards</Button>
       <Button handleClick={handlePass}>Pass</Button>
     </div>
   </div>
+
+  {#if $gameOver}
+    <Button variant="action" handleClick={makeNewGame} >Play again</Button>
+  {/if}
 </main>
