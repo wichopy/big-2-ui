@@ -3,6 +3,7 @@
   import { gameData, currentPlayerCards, lastPlayedCards, currentPlayerId, gameOver,
     playerLCards, playerRCards, playerTCards,
     playLName, playRName, playTName,
+    youHaveToGo,
   } from './store.ts'
   import Button from "./Button.svelte";
   import Card from "./Card.svelte";
@@ -166,8 +167,8 @@
       {/each}
       </CardHand>
       {$currentPlayerId}
-      <Button handleClick={handlePlay}>Play cards</Button>
-      <Button handleClick={handlePass}>Pass</Button>
+      <Button handleClick={handlePlay} disabled={!toggledCards.length}>Play cards</Button>
+      <Button handleClick={handlePass} disabled={$youHaveToGo}>Pass</Button>
     </div>
   </div>
 

@@ -34,6 +34,14 @@ export const gameOver = derived(gameData, ($gameData) => {
   return $gameData?.gameStatus === 'over'
 })
 
+export const youHaveToGo = derived(gameData, ($gameData) => {
+  if ($gameData?.currentPlayerTurn !== undefined && $gameData?.lastPlayedCardsPlayer !== undefined && $gameData?.currentPlayerTurn === $gameData?.lastPlayedCardsPlayer) {
+    return true
+  }
+
+  return false
+})
+
 export const playerLCards = derived(gameData, ($gameData) => {
   // this should be in the backend
   if (!$gameData?.players) return 0
