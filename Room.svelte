@@ -2,15 +2,17 @@
   import { onMount, onDestroy } from 'svelte'
   import { roomData, userData } from './store.ts'
   import GameHost from './GameHost.svelte'
+  import Button from './Button.svelte'
   import RoomStatus from './RoomStatus.svelte'
   import Game from './Game.svelte'
   import { BASE_URL } from "./config.ts";
 
-  let ws: WebSocket
+  let ws
 
   onDestroy(() => {
     ws.close()
   })
+  
   onMount(async () => {
     const gameCode = $roomData.gameCode
     console.log('on room mount', gameCode)
@@ -37,8 +39,30 @@
     })
   })
 
+  console.log($roomData)
+
+
+  async function handleJoin(slot) {
+    await fetch(`${BASE_URL}/room/${$roomData.gameCode}/action/sit`, {
+      method: 'POST',
+      body: JSON.stringify({
+        userId: $userData.userId,
+        userName: $userData.userName,
+        slot,
+      })
+    })
+
+  }
 </script>
 
+<style>
+  .slots {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+</style>
 
 <div>
   <h3>
@@ -64,6 +88,15 @@
 
   <Game />
   <!-- <Game /> -->
-
+  {#each Object.entries($roomData?.players || {}) as slot}
+    <div>Slot {slot[0]} has {slot[1]?.name}</div>
+  {/each}
   <!-- <GameLog /> -->
+  <div class="slots">
+    {#each Object.keys($roomData?.players || {}) as slot}
+      <Button disabled={!!$roomData?.players[slot]} handleClick={() => handleJoin(slot)}>
+        Join slot {slot}
+      </Button>
+    {/each}
+  </div>
 </div>

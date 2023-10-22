@@ -17,6 +17,8 @@
       gameCode: json.gameCode,
       hostName: json.hostName,
       status: json.status,
+      viewers: json.viewers,
+      players: json.players,
     })
     inRoom.set(true)
   }
