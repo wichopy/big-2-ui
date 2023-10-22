@@ -10,6 +10,15 @@ import { writable, derived } from 'svelte/store'
 // let gameId = "1234";
 
 export const gameData = writable();
+export const roomData = writable({
+  gameCode: '',
+  hostName: '',
+  status: '',
+});
+export const userData = writable({
+  userId: '',
+  userName: '',
+})
 
 export const currentPlayer = derived(gameData, ($gameData) => {
   if (!$gameData) return {}
