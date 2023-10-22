@@ -5,6 +5,7 @@
     playLName, playRName, playTName,
     youHaveToGo,
     userData,
+    inRoom,
   } from './store.ts'
   import { generateUserName } from './util.ts'
   import Entry from './Entry.svelte'
@@ -13,7 +14,6 @@
 
   let clientSideUserId
   let clientSideUserName
-
   onMount(() => {
     const storedUserId = localStorage.getItem('BIG_TWO_clientSideUserId')
     const storedUserName = localStorage.getItem('BIG_TWO_clientSideUserName')
@@ -49,14 +49,12 @@
   <h4>Welcome, {$userData.userName}</h4>
 
   <br />
-
-  <Entry />
+  {#if !$inRoom}
+    <Entry />
+  {:else}
+    <Room />
+  {/if}
 
   <br />
 
-  <Room />
-
-  <br />
-
-  <Game />
 </main>

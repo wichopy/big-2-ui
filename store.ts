@@ -20,6 +20,8 @@ export const userData = writable({
   userName: '',
 })
 
+export const inRoom = writable(false)
+
 export const currentPlayer = derived(gameData, ($gameData) => {
   if (!$gameData) return {}
   return $gameData.players[$gameData.currentPlayerTurn]

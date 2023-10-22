@@ -1,5 +1,5 @@
 <script>
-  import { roomData, userData } from './store.ts'
+  import { roomData, userData, inRoom } from './store.ts'
   import Button from './Button.svelte'
   import { BASE_URL } from "./config.ts";
 
@@ -18,6 +18,7 @@
       hostName: json.hostName,
       status: json.status,
     })
+    inRoom.set(true)
   }
 
   async function joinRoom() {
@@ -46,6 +47,7 @@
       viewers: json.viewers,
       players: json.players,
     })
+    inRoom.set(true)
   }
 </script>
 
