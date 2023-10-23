@@ -11,6 +11,7 @@
     "sirv-cli": "^0.3.1"
   },
   "dependencies": {
+    "rollup-plugin-dev": "^2.0.4",
     "svelte": "^3.32.3"
   },
   "scripts": {
