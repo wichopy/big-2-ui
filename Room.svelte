@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { roomData, userData } from './store.ts'
+  import { roomData, userData, currentPlayerData } from './store.ts'
   import GameHost from './GameHost.svelte'
   import Button from './Button.svelte'
   import RoomStatus from './RoomStatus.svelte'
@@ -31,10 +31,26 @@
     // subscribe to updates
     ws.addEventListener("message", (event) => {
       console.log('got message', event.data)
+      if (!event.data) {
+        return
+      }
       const json = JSON.parse(event.data)
       console.log('parsed message', json)
       if (json.type === 'room-update') {
-        roomData.set(json.payload)
+        roomData.set({
+          ...json.payload,
+          lastPlayed: json.payload?.lastPlayed?.map(card => `${card.suite.charAt(0)}${card.value}`) || [],
+        })
+      }
+
+      if (json.type === 'player-update') {
+        const { cards, slot, youHaveToGo, yourTurn } = json.payload
+        currentPlayerData.set({
+          cards: cards.map(card => `${card.suite.charAt(0)}${card.value}`),
+          slot,
+          youHaveToGo,
+          yourTurn,
+        })
       }
     })
   })
@@ -49,9 +65,18 @@
         userId: $userData.userId,
         userName: $userData.userName,
         slot,
-      })
+      }),
     })
+  }
 
+  async function startGame() {
+    await fetch(`${BASE_URL}/room/${$roomData.gameCode}/action/start`, {
+      method: 'POST',
+      body: JSON.stringify({
+        userId: $userData.userId,
+        userName: $userData.userName,
+      }),
+    })
   }
 </script>
 
@@ -99,4 +124,10 @@
       </Button>
     {/each}
   </div>
+
+  {#if $roomData?.hostId === $userData.userId}
+    <Button handleClick={startGame}>
+      Start game
+    </Button>
+  {/if}
 </div>

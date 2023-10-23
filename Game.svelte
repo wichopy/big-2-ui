@@ -5,10 +5,12 @@
   import CardHand from "./CardHand.svelte";
   import PlayArea from "./PlayArea.svelte";
   import HiddenCard from "./HiddenCard.svelte";
-  import { gameData, currentPlayerCards, lastPlayedCards, currentPlayerId, gameOver,
+  import { gameData, currentPlayerData, currentPlayerCards, lastPlayedCards, currentPlayerId, gameOver,
     playerLCards, playerRCards, playerTCards,
     playLName, playRName, playTName,
     youHaveToGo,
+    userData,
+    roomData,
   } from './store.ts'
   import { BASE_URL } from "./config.ts";
 
@@ -24,41 +26,48 @@
     }
   }
 
-  async function makeNewGame() {
-    const makeGameResp = await fetch(`${BASE_URL}/game`, {
-      method: "POST",
-      body: JSON.stringify({
-        // need to send an empty object or it will die on the server
-        // numPlayers: 2,
-      })
-    })
-    const makeGameJson = await makeGameResp.json()
-    gameId = makeGameJson.id
-    const resp = await fetch(`${BASE_URL}/game/${makeGameJson.id}`)
-    const json = await resp.json()
+  // async function makeNewGame() {
+  //   const makeGameResp = await fetch(`${BASE_URL}/game`, {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       // need to send an empty object or it will die on the server
+  //       // numPlayers: 2,
+  //     })
+  //   })
+  //   const makeGameJson = await makeGameResp.json()
+  //   gameId = makeGameJson.id
+  //   const resp = await fetch(`${BASE_URL}/game/${makeGameJson.id}`)
+  //   const json = await resp.json()
 
-    gameData.set(json)
-  }
+  //   gameData.set(json)
+  // }
 
   onMount(() => {
-    makeNewGame()
+    // makeNewGame()
   })
 
   async function handlePlay() {
-    await fetch(`${BASE_URL}/game/${gameId}/actions/play-cards`, {
-      method: "POST",
+    await fetch(`${BASE_URL}/room/${$roomData.gameCode}/actions/play-cards`, {
+      method: 'POST',
       body: JSON.stringify({
-        playerId: $currentPlayerId,
+        userId: $userData.userId,
         cards: toggledCards,
-      }),
-
-
+      })
     })
+    // await fetch(`${BASE_URL}/game/${gameId}/actions/play-cards`, {
+    //   method: "POST",
+    //   body: JSON.stringify({
+    //     slot: $currentPlayerId,
+    //     userId: $userData.userId,
+    //     playerId: $currentPlayerId,
+    //     cards: toggledCards,
+    //   }),
+    // })
 
-    const resp = await fetch(`${BASE_URL}/game/${gameId}`)
-    const json = await resp.json()
+    // const resp = await fetch(`${BASE_URL}/game/${gameId}`)
+    // const json = await resp.json()
     
-    onAfterTurn(json)
+    onAfterTurn()
   }
 
   async function onAfterTurn (newGameState) {
@@ -67,17 +76,20 @@
   }
 
   async function handlePass() {
-    await fetch(`${BASE_URL}/game/${gameId}/actions/pass-turn`, {
+    await fetch(`${BASE_URL}/room/${$roomData.gameCode}/actions/pass-turn`, {
       method: 'POST',
       body: JSON.stringify({
         playerId: $currentPlayerId,
+        userId: $userData.userId,
       }),
     })
-    const resp = await fetch(`${BASE_URL}/game/${gameId}`)
-    const json = await resp.json()
+    // const resp = await fetch(`${BASE_URL}/game/${gameId}`)
+    // const json = await resp.json()
 
-    onAfterTurn(json)
+    onAfterTurn()
   }
+
+  console.log($roomData)
 </script>
 
 <style>
@@ -121,7 +133,7 @@
 {#if $gameOver}
   <h2>Gameover!</h2>
 {:else }
-  <h2>playersTurn: {$currentPlayerId}</h2>
+  <h2>playersTurn: {$roomData?.currentPlayerTurn}</h2>
 {/if}
 <br />
 
@@ -152,7 +164,7 @@
 
   <div class="play-area">
     <PlayArea>
-      {#each $lastPlayedCards as card}
+      {#each $roomData?.lastPlayed || [] as card}
         <Card value={card} />
       {/each}  
     </PlayArea>
@@ -160,13 +172,13 @@
 
   <div class="current-player">
     <CardHand>
-    {#each $currentPlayerCards as card}
+    {#each $currentPlayerData.cards as card}
       <Card value={card} toggleCard={toggleCard} selected={toggledCards?.includes(card)} />
     {/each}
     </CardHand>
     {$currentPlayerId}
     <Button handleClick={handlePlay} disabled={!toggledCards.length}>Play cards</Button>
-    <Button handleClick={handlePass} disabled={$youHaveToGo}>Pass</Button>
+    <Button handleClick={handlePass} disabled={$currentPlayerData.youHaveToGo}>Pass</Button>
   </div>
 </div>
 

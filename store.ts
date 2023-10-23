@@ -8,13 +8,27 @@ import { writable, derived } from 'svelte/store'
 // let currentPlayerTurn = "player 1";
 // let userId = "red-panda";
 // let gameId = "1234";
-
+export const currentPlayerData = writable({
+  cards: [],
+  slot: '',
+  youHaveToGo: false,
+  yourTurn: false,
+})
 export const gameData = writable();
 export const roomData = writable({
   gameCode: '',
   hostName: '',
   status: '',
+  viewers: [],
+  players: {
+    'player 1': null,
+    'player 2': null,
+    'player 3': null,
+    'player 4': null,
+  },
+  currentGameId: '',
 });
+
 export const userData = writable({
   userId: '',
   userName: '',
